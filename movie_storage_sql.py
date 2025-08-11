@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 DB_URL = "sqlite:///movies.db"
 
 # Create the engine
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_URL, echo=False)
 
 # Create the movies table if it does not exist
 with engine.connect() as connection:
@@ -24,7 +24,6 @@ def list_movies():
     with engine.connect() as connection:
         result = connection.execute(text("SELECT title, year, rating, poster FROM movies"))
         movies = result.fetchall()
-
     return {row[0]: {"year": row[1], "rating": row[2], "poster": row[3]} for row in movies}
 
 
@@ -39,7 +38,10 @@ def add_movie(title, year, rating, poster):
             connection.commit()
             print(f"Movie '{title}' added successfully.")
         except Exception as e:
-            print(f"Error: {e}")
+            if "UNIQUE constraint failed" in str(e):
+                print(f"Movie '{title}' already exists in the database.")
+            else:
+                print(f"Error: {e}")
 
 
 def delete_movie(title):
