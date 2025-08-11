@@ -2,9 +2,12 @@ import random
 import statistics
 import requests
 import movie_storage_sql as storage
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-API_KEY = "e389e6"
+API_KEY = os.getenv("API_KEY")
 
 def list_movies():
     """
@@ -25,7 +28,13 @@ def add_movie():
     The user only enters the movie title, and the program retrieves title, year, rating, and poster URL.
     Handles errors for movies not found or API connection issues.
     """
+    movies = storage.list_movies()
     new_movie = input("Please enter movie name: ")
+
+    if any(title.lower() == new_movie.lower() for title in movies.keys()):
+        print(f"Movie '{new_movie}' is already in the database.")
+        return
+
     try:
         response = requests.get(
             f"http://www.omdbapi.com/?t={new_movie}&apikey={API_KEY}"
@@ -35,7 +44,6 @@ def add_movie():
             return
 
         data = response.json()
-
         if data.get("Response") == "False":
             print(f"Movie '{new_movie}' was not found.")
             return
